@@ -132,6 +132,8 @@ class Store:
             if key not in DEFAULTS:
                 raise ValueError("Unknown preference")
             if key == "name":
+                if not isinstance(value, str):
+                    raise ValueError("Your name must be text.")
                 clean_text(value, 80)
             if key in ("goal", "focus_minutes", "break_minutes") and (type(value) is not int or not 1 <= value <= 720):
                 raise ValueError("Minutes must be between 1 and 720.")
@@ -473,6 +475,8 @@ class Store:
             if key == "accent" and v not in ("Forest", "Ocean", "Violet", "Copper"):
                 raise ValueError("Invalid accent preference.")
             if key == "name":
+                if not isinstance(v, str):
+                    raise ValueError("Invalid name preference.")
                 clean_text(v, 80)
         for plan in tables["day_plans"]:
             clean_date(plan["day"])

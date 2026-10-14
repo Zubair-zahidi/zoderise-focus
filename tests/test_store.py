@@ -124,6 +124,17 @@ class WorkspaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.db.restore(out.getvalue())
         self.assertEqual(self.db.tasks()[0]["title"], "Keep this")
+        # A checksum can be recomputed; semantic validation must reject bad preferences too.
+        snapshot = self.db.snapshot()
+        snapshot["tables"]["settings"] = [{"key": "name", "value": "true"}]
+        payload = json.dumps(snapshot).encode()
+        out = io.BytesIO()
+        with zipfile.ZipFile(out, "w") as z:
+            z.writestr("focus.json", payload)
+            z.writestr("manifest.json", json.dumps({"sha256": hashlib.sha256(payload).hexdigest()}))
+        with self.assertRaises(ValueError):
+            self.db.restore(out.getvalue())
+        self.assertEqual(self.db.tasks()[0]["title"], "Keep this")
 
     def test_note_search_export_and_calendar_escaping(self):
         note = self.db.save_note("Reference", "Markdown contains networking ideas", tags="research")
