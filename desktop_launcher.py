@@ -91,6 +91,7 @@ def main():
     logging.basicConfig(filename=home / "desktop.log", level=logging.INFO)
     process = None
     log = None
+    bridge = None
     try:
         port = available_port()
         args = [sys.executable]
@@ -116,8 +117,11 @@ def main():
         import webview
         window = webview.create_window("Zoderise Focus", url, width=1350, height=900, min_size=(430, 650),
                                        background_color="#F7F6F2")
+        from focus.desktop import DesktopBridge
+        bridge = DesktopBridge(window, url)
+        window.events.closed += lambda: bridge.stop.set()
         # Explicitly use the modern installed WebView2 runtime.
-        webview.start(gui="edgechromium" if os.name == "nt" else None)
+        webview.start(func=bridge.start, gui="edgechromium" if os.name == "nt" else None)
     except Exception as exc:
         logging.exception("Desktop startup failed")
         if os.name == "nt":
@@ -126,6 +130,8 @@ def main():
             print(exc, file=sys.stderr)
         raise
     finally:
+        if bridge:
+            bridge.close()
         if process:
             stop_child(process)
         if log:

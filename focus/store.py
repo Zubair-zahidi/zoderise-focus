@@ -14,13 +14,17 @@ import zipfile
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from focus.planning import Planning, EXTRA_TABLES, EXTRA_SCHEMA, next_due, validate_preferences, validate_extras
 
 STATUSES = ("Inbox", "Next", "Doing", "Done")
 PRIORITIES = ("Low", "Medium", "High")
-RECURRENCES = ("None", "Daily", "Weekly")
-TABLES = ("projects", "tasks", "checklist", "notes", "focus_sessions", "settings", "day_plans")
+RECURRENCES = ("None", "Daily", "Weekly", "Weekdays", "Selected weekdays", "Monthly", "Custom interval")
+LEGACY_TABLES = ("projects", "tasks", "checklist", "notes", "focus_sessions", "settings", "day_plans")
+TABLES = LEGACY_TABLES + EXTRA_TABLES
 DEFAULTS = {"name": "", "goal": 60, "focus_minutes": 25, "break_minutes": 5,
-            "accent": "Forest", "compact": False, "motion": True}
+            "accent": "Forest", "compact": False, "motion": True,
+            "language": "English", "backup_interval": "Off", "backup_keep": 7,
+            "reminders": False, "desktop_hotkey": False, "_draft_epoch": ""}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS projects (
@@ -52,7 +56,7 @@ CREATE TABLE IF NOT EXISTS day_plans (day TEXT PRIMARY KEY, goal_minutes INTEGER
  journal TEXT NOT NULL DEFAULT '');
 CREATE INDEX IF NOT EXISTS tasks_status ON tasks(status, deleted_at);
 CREATE INDEX IF NOT EXISTS sessions_finished ON focus_sessions(finished_at);
-"""
+""" + EXTRA_SCHEMA
 
 
 def data_home() -> Path:
@@ -64,8 +68,8 @@ def data_home() -> Path:
     return Path.home() / ".local" / "share" / "zoderise-focus"
 
 
-def clean_text(value, limit=5000, required=False):
-    value = str(value).strip()
+def clean_text(value, limit=5000, required=False, strip=True):
+    value = str(value).strip() if strip else str(value)
     if required and not value:
         raise ValueError("Please enter a title or name.")
     if len(value) > limit:
@@ -85,7 +89,7 @@ def clean_date(value):
     return date.fromisoformat(str(value)).isoformat()
 
 
-class Store:
+class Store(Planning):
     def __init__(self, path=None, clock=time.time):
         self.path = Path(path) if path else data_home() / "workspace.sqlite3"
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -129,6 +133,7 @@ class Store:
 
     def set_settings(self, **values):
         for key, value in values.items():
+            validate_preferences(key, value)
             if key not in DEFAULTS:
                 raise ValueError("Unknown preference")
             if key == "name":
@@ -174,11 +179,12 @@ class Store:
         if query:
             sql += " AND (instr(lower(t.title),lower(?))>0 OR instr(lower(t.description),lower(?))>0 OR instr(lower(t.tags),lower(?))>0)"
             args.extend([query] * 3)
-        sql += " ORDER BY CASE t.priority WHEN 'High' THEN 0 WHEN 'Medium' THEN 1 ELSE 2 END, COALESCE(t.due_date,'9999'),t.created_at DESC"
+        sql += " ORDER BY COALESCE((SELECT sort_order FROM task_plans WHERE task_id=t.id),0), CASE t.priority WHEN 'High' THEN 0 WHEN 'Medium' THEN 1 ELSE 2 END, COALESCE(t.due_date,'9999'),t.created_at DESC,t.id"
         return self.rows(sql, args)
 
     def save_task(self, title, project_id=None, description="", status="Inbox", priority="Medium", due_date=None,
-                  recurrence="None", estimate_minutes=25, tags=(), identifier=None):
+                  recurrence="None", estimate_minutes=25, tags=(), identifier=None, weekdays=(), interval_days=1,
+                  scheduled_day=None, prerequisites=None):
         title, description = clean_text(title, 200, True), clean_text(description, 10000)
         if status not in STATUSES or priority not in PRIORITIES or recurrence not in RECURRENCES:
             raise ValueError("Invalid task option")
@@ -186,6 +192,10 @@ class Store:
             raise ValueError("Estimate must be between 1 and 720 minutes.")
         if recurrence != "None" and not due_date:
             raise ValueError("Recurring tasks need a due date.")
+        if recurrence == "Selected weekdays" and not weekdays:
+            raise ValueError("Select at least one weekday.")
+        if type(interval_days) is not int or not 1 <= interval_days <= 365 or any(type(d) is not int or not 0 <= d <= 6 for d in weekdays):
+            raise ValueError("Invalid recurrence schedule.")
         identifier, now = identifier or str(uuid.uuid4()), self.clock()
         with self.connect(True) as c:
             existing = c.execute("SELECT * FROM tasks WHERE id=?", (identifier,)).fetchone()
@@ -197,6 +207,17 @@ class Store:
              estimate_minutes=excluded.estimate_minutes,tags=excluded.tags,updated_at=excluded.updated_at""",
                       (identifier, project_id, title, description, initial_status, priority, clean_date(due_date), recurrence,
                        estimate_minutes, json.dumps(clean_tags(tags)), now, now))
+            c.execute("INSERT INTO task_plans(task_id,scheduled_day,weekdays,interval_days) VALUES (?,?,?,?) ON CONFLICT(task_id) DO UPDATE SET scheduled_day=excluded.scheduled_day,weekdays=excluded.weekdays,interval_days=excluded.interval_days",
+                      (identifier, clean_date(scheduled_day), json.dumps(sorted(set(weekdays))), interval_days))
+            if prerequisites is not None:
+                c.execute("DELETE FROM dependencies WHERE task_id=?", (identifier,))
+                for parent in set(prerequisites):
+                    if parent == identifier:
+                        raise ValueError("A task cannot depend on itself.")
+                    cycle = c.execute("WITH RECURSIVE chain(id) AS (SELECT prerequisite_id FROM dependencies WHERE task_id=? UNION SELECT d.prerequisite_id FROM dependencies d JOIN chain ON d.task_id=chain.id) SELECT 1 FROM chain WHERE id=?", (parent, identifier)).fetchone()
+                    if cycle:
+                        raise ValueError("That dependency would create a cycle.")
+                    c.execute("INSERT INTO dependencies VALUES (?,?)", (identifier, parent))
             self._move(c, identifier, status, now)
         return identifier
 
@@ -206,6 +227,10 @@ class Store:
         row = c.execute("SELECT * FROM tasks WHERE id=? AND deleted_at IS NULL", (identifier,)).fetchone()
         if not row:
             raise ValueError("Task was removed or does not exist.")
+        if status in ("Doing", "Done") and row["status"] != status:
+            blocked = c.execute("SELECT t.title FROM dependencies d JOIN tasks t ON t.id=d.prerequisite_id WHERE d.task_id=? AND (t.status<>'Done' OR t.deleted_at IS NOT NULL)", (identifier,)).fetchall()
+            if blocked:
+                raise ValueError("Finish the prerequisite tasks first: " + ", ".join(r[0] for r in blocked))
         completed = row["completed_at"] if row["status"] == "Done" and status == "Done" else now if status == "Done" else None
         c.execute("UPDATE tasks SET status=?,updated_at=?,completed_at=? WHERE id=?", (status, now, completed, identifier))
         if status == "Done" and row["status"] != "Done" and row["recurrence"] != "None":
@@ -213,12 +238,14 @@ class Store:
             if not exists:
                 today = datetime.fromtimestamp(now).date()
                 base = max(today, date.fromisoformat(row["due_date"]))
-                due = (base + timedelta(days=1 if row["recurrence"] == "Daily" else 7)).isoformat()
+                plan = c.execute("SELECT * FROM task_plans WHERE task_id=?", (identifier,)).fetchone()
+                due = next_due(base, row["recurrence"], json.loads(plan["weekdays"]) if plan else (), plan["interval_days"] if plan else 1).isoformat()
                 next_id = str(uuid.uuid4())
                 c.execute("""INSERT INTO tasks (id,project_id,title,description,status,priority,due_date,recurrence,
                  estimate_minutes,tags,created_at,updated_at,recurrence_source_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                           (next_id, row["project_id"], row["title"], row["description"], "Next", row["priority"], due,
                            row["recurrence"], row["estimate_minutes"], row["tags"], now, now, identifier))
+                c.execute("INSERT INTO task_plans(task_id,weekdays,interval_days) VALUES (?,?,?)", (next_id, plan["weekdays"] if plan else "[]", plan["interval_days"] if plan else 1))
                 for item in c.execute("SELECT * FROM checklist WHERE task_id=? ORDER BY position", (identifier,)).fetchall():
                     c.execute("INSERT INTO checklist VALUES (?,?,?,0,?)", (str(uuid.uuid4()), next_id, item["text"], item["position"]))
 
@@ -261,10 +288,15 @@ class Store:
         return self.rows(sql + " ORDER BY updated_at DESC", args)
 
     def save_note(self, title, body="", project_id=None, tags=(), identifier=None):
+        title, body, tags_json = clean_text(title, 200, True), clean_text(body, 200000, strip=False), json.dumps(clean_tags(tags))
         identifier = identifier or str(uuid.uuid4())
         with self.connect(True) as c:
+            old = c.execute("SELECT * FROM notes WHERE id=?", (identifier,)).fetchone()
+            if old and (old["title"], old["body"], old["project_id"], old["tags"]) != (title, body, project_id, tags_json):
+                c.execute("INSERT INTO note_versions VALUES (?,?,?,?,?,?,?)", (str(uuid.uuid4()), identifier, old["title"], old["body"], old["project_id"], old["tags"], self.clock()))
+                c.execute("DELETE FROM note_versions WHERE note_id=? AND id NOT IN (SELECT id FROM note_versions WHERE note_id=? ORDER BY created_at DESC LIMIT 50)", (identifier, identifier))
             c.execute("INSERT INTO notes VALUES (?,?,?,?,?,NULL,?) ON CONFLICT(id) DO UPDATE SET project_id=excluded.project_id,title=excluded.title,body=excluded.body,tags=excluded.tags,updated_at=excluded.updated_at",
-                      (identifier, project_id, clean_text(title, 200, True), clean_text(body, 200000), json.dumps(clean_tags(tags)), self.clock()))
+                      (identifier, project_id, title, body, tags_json, self.clock()))
         return identifier
 
     def start_focus(self, intent, minutes, task_id=None):
@@ -272,10 +304,13 @@ class Store:
             raise ValueError("Choose a session between 1 and 180 minutes.")
         identifier, now = str(uuid.uuid4()), self.clock()
         with self.connect(True) as c:
+            if task_id and self.blocked(task_id):
+                raise ValueError("Finish the prerequisite tasks before focusing on this task.")
             if c.execute("SELECT 1 FROM focus_sessions WHERE state IN ('running','paused')").fetchone():
                 raise ValueError("Finish or cancel your existing session first.")
             c.execute("INSERT INTO focus_sessions VALUES (?,?,?,?,0,?,'running',?,NULL)",
                       (identifier, task_id, clean_text(intent, 200, True), minutes * 60, now, now))
+            c.execute("DELETE FROM alerts WHERE dedupe_key LIKE 'break:%' AND created_at>?", (now,))
         return identifier
 
     def elapsed(self, session):
@@ -288,11 +323,11 @@ class Store:
         rows = self.rows("SELECT * FROM focus_sessions WHERE state IN ('running','paused') LIMIT 1")
         return rows[0] if rows else None
 
-    def control_focus(self, action):
+    def control_focus(self, action, identifier=None):
         with self.connect(True) as c:
             row = c.execute("SELECT * FROM focus_sessions WHERE state IN ('running','paused')").fetchone()
-            if not row:
-                return
+            if not row or identifier is not None and row['id'] != identifier:
+                return False
             row = dict(row)
             now, elapsed = self.clock(), self.elapsed(row)
             if action == "pause":
@@ -305,6 +340,13 @@ class Store:
                 raise ValueError("Invalid timer action")
             c.execute("UPDATE focus_sessions SET state=?,active_since=?,accumulated_seconds=?,finished_at=? WHERE id=?",
                       (state, active, elapsed, finished, row["id"]))
+            reminders = c.execute("SELECT value FROM settings WHERE key='reminders'").fetchone()
+            if action == 'complete' and reminders and json.loads(reminders[0]):
+                rest = c.execute("SELECT value FROM settings WHERE key='break_minutes'").fetchone()
+                for key, title, body, when in (("session:"+row['id'], "Focus session complete", row['intent'], now),
+                                               ("break:"+row['id'], "Break complete", "Start your next session when you are ready.", now+(json.loads(rest[0]) if rest else 5)*60)):
+                    c.execute("INSERT OR IGNORE INTO alerts VALUES (?,?,?,?,?,NULL,NULL)", (str(uuid.uuid4()), key, title, body, when))
+            return True
 
     def history(self):
         return self.rows("SELECT s.*,t.title AS task_title FROM focus_sessions s LEFT JOIN tasks t ON s.task_id=t.id ORDER BY started_at DESC")
@@ -330,7 +372,7 @@ class Store:
                 session["accumulated_seconds"] = self.elapsed(session)
                 session["active_since"] = None
                 session["state"] = "paused"
-        return {"format": "zoderise-focus-v1", "exported_at": datetime.now(timezone.utc).isoformat(), "tables": tables}
+        return {"format": "zoderise-focus-v2", "exported_at": datetime.now(timezone.utc).isoformat(), "tables": tables}
 
     def backup(self):
         payload = json.dumps(self.snapshot(), ensure_ascii=False, separators=(",", ":")).encode()
@@ -354,7 +396,9 @@ class Store:
             if manifest.get("sha256") != hashlib.sha256(payload).hexdigest():
                 raise ValueError("Backup checksum failed. Nothing was restored.")
             snapshot = json.loads(payload)
-            if snapshot.get("format") != "zoderise-focus-v1" or set(snapshot["tables"]) != set(TABLES):
+            if snapshot.get("format") == "zoderise-focus-v1" and set(snapshot["tables"]) == set(LEGACY_TABLES):
+                snapshot["tables"].update({table: [] for table in EXTRA_TABLES})
+            if snapshot.get("format") not in ("zoderise-focus-v1", "zoderise-focus-v2") or set(snapshot["tables"]) != set(TABLES):
                 raise ValueError("Unsupported backup format.")
             tables = snapshot["tables"]
             if any(not isinstance(rows, list) or len(rows) > 50000 for rows in tables.values()):
@@ -366,6 +410,31 @@ class Store:
     def restore(self, blob):
         snapshot = self.inspect_backup(blob)
         tables = snapshot["tables"]
+        self.validate_backup(snapshot)
+        safety_dir = self.path.parent / "backups"
+        safety_dir.mkdir(exist_ok=True)
+        safety_path = safety_dir / f"before-restore-{time.time_ns()}.zip"
+        with self.connect(True) as c:
+            current = {table: [dict(r) for r in c.execute(f"SELECT * FROM {table}")] for table in TABLES}
+            for session in current["focus_sessions"]:
+                if session["state"] == "running":
+                    session["accumulated_seconds"] = self.elapsed(session)
+                    session["state"], session["active_since"] = "paused", None
+            payload = json.dumps({"format": "zoderise-focus-v2", "tables": current}).encode()
+            with zipfile.ZipFile(safety_path, "w", zipfile.ZIP_DEFLATED) as z:
+                z.writestr("focus.json", payload)
+                z.writestr("manifest.json", json.dumps({"sha256": hashlib.sha256(payload).hexdigest()}))
+            c.execute("PRAGMA defer_foreign_keys=ON")
+            for table in reversed(TABLES):
+                c.execute(f"DELETE FROM {table}")
+            self._insert_snapshot(c, tables)
+            c.execute("INSERT INTO settings VALUES ('_draft_epoch',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (json.dumps(str(uuid.uuid4())),))
+            if c.execute("PRAGMA foreign_key_check").fetchall():
+                raise ValueError("Backup references failed.")
+        return safety_path
+
+    def validate_backup(self, snapshot):
+        tables = snapshot["tables"]
         # Validate into a disposable known-schema database; never execute uploaded SQL.
         validation = sqlite3.connect(":memory:")
         validation.execute("PRAGMA foreign_keys=ON")
@@ -375,31 +444,10 @@ class Store:
             self._validate_snapshot(tables)
             if validation.execute("PRAGMA foreign_key_check").fetchall():
                 raise ValueError("Backup contains broken references.")
-        except (sqlite3.Error, ValueError, TypeError, KeyError) as exc:
+        except (sqlite3.Error, ValueError, TypeError, KeyError, RecursionError) as exc:
             raise ValueError(f"Backup validation failed: {exc}") from exc
         finally:
             validation.close()
-        safety_dir = self.path.parent / "backups"
-        safety_dir.mkdir(exist_ok=True)
-        safety_path = safety_dir / f"before-restore-{time.time_ns()}.zip"
-        # Capture and replace under one writer transaction to prevent lost concurrent edits.
-        with self.connect(True) as c:
-            current = {table: [dict(r) for r in c.execute(f"SELECT * FROM {table}")] for table in TABLES}
-            for session in current["focus_sessions"]:
-                if session["state"] == "running":
-                    session["accumulated_seconds"] = self.elapsed(session)
-                    session["state"], session["active_since"] = "paused", None
-            payload = json.dumps({"format": "zoderise-focus-v1", "tables": current}).encode()
-            with zipfile.ZipFile(safety_path, "w", zipfile.ZIP_DEFLATED) as z:
-                z.writestr("focus.json", payload)
-                z.writestr("manifest.json", json.dumps({"sha256": hashlib.sha256(payload).hexdigest()}))
-            c.execute("PRAGMA defer_foreign_keys=ON")
-            for table in reversed(TABLES):
-                c.execute(f"DELETE FROM {table}")
-            self._insert_snapshot(c, tables)
-            if c.execute("PRAGMA foreign_key_check").fetchall():
-                raise ValueError("Backup references failed.")
-        return safety_path
 
     @staticmethod
     def _insert_snapshot(c, tables):
@@ -466,6 +514,7 @@ class Store:
                 raise ValueError("Session has no start time.")
         for s in tables["settings"]:
             v, key = json.loads(s["value"]), s["key"]
+            validate_preferences(key, v)
             if key not in DEFAULTS:
                 raise ValueError("Unknown backup preference.")
             if key in ("goal", "focus_minutes", "break_minutes") and (type(v) is not int or not 1 <= v <= 720):
@@ -482,6 +531,7 @@ class Store:
             clean_date(plan["day"])
             if type(plan["goal_minutes"]) is not int or not 1 <= plan["goal_minutes"] <= 720:
                 raise ValueError("Invalid daily goal.")
+        validate_extras(tables)
 
     def csv_export(self):
         output = io.StringIO(newline="")
@@ -542,3 +592,5 @@ class Store:
                 c.execute("INSERT INTO focus_sessions VALUES (?,?,?,?,?,NULL,'completed',?,?)",
                           (str(uuid.uuid4()), a, "Demo: thoughtful work", minutes * 60, minutes * 60, end - minutes * 60, end))
         self.set_settings(name="Zubair", goal=60)
+        self.save_picks([t['id'] for t in self.tasks() if t['status'] != 'Done'][:3])
+        self.set_task_plan(a, date.today())

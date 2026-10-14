@@ -1,27 +1,30 @@
-# Zoderise Focus 1.0.0
+# Zoderise Focus 1.1.0
 
-A personal productivity workspace from **Zubair Zahidi, founder of Zoderise**. Organize projects, capture ideas, and record focused sessions without an account, AI model, or cloud service.
+A fuller local productivity workspace by **Zubair Zahidi, founder of Zoderise**.
 
-## Included
+## New in this release
 
-- Projects and a four-state Kanban board, priorities, deadlines, estimates, checklists, tags, and daily/weekly recurring tasks.
-- Searchable project-linked Markdown notes and saved-content preview.
-- Focus timer with pause/resume, persistent session state, daily goals, break countdowns, and recorded activity review.
-- Quick find with Ctrl+K, agenda views, a weekly reflection, and review download.
-- Four accent palettes, compact spacing, reduced motion, and native light/dark appearance.
-- Local SQLite storage, JSON/CSV/Markdown/calendar exports, verified ZIP backups, validated restore with a safety copy, and reversible trash/archive.
-- Separate labelled sample workspace, real screenshots, animated demo, user guide, architecture notes, source tests, and CI.
+- Drag-and-drop Kanban, keyboard card movement, manual ordering, and prerequisites with cycle protection.
+- Today's top three, weekly planning with separate planned dates, and estimate-versus-recorded-time review.
+- Weekday, selected-day, monthly, and custom-interval recurrence alongside daily/weekly schedules.
+- Built-in and personal project templates with reusable tasks and checklists.
+- Markdown typing autosave, restart recovery, and the last 50 published note versions.
+- Opt-in Windows Ctrl+Alt+Space quick capture; persistent reminder inbox and optional desktop notifications.
+- Password-encrypted backup exports, daily/weekly automatic local backups with retention, and validated restore change previews.
+- Dari and Pashto core controls and RTL layouts, alongside English; refreshed real screenshots and animated walkthrough.
 
 ## Downloads
 
-**Windows x64:** `Zoderise-Focus-1.0.0-Windows-x64.exe`. Double-click to open the native app. No Python, npm, Node.js, or Ollama is required. Microsoft Edge WebView2 Runtime must be present. The app is unsigned.
+**Windows x64:** `Zoderise-Focus-1.1.0-Windows-x64.exe`. Double-click to open. No Python, npm, Node.js, or Ollama is required. Microsoft Edge WebView2 Runtime must be present. The executable is unsigned.
 
-**Developers:** `Zoderise-Focus-1.0.0-Source.zip` includes source, tests, documentation, screenshots, and the animated walkthrough. Follow the README to run the browser app.
+**Source:** `Zoderise-Focus-1.1.0-Source.zip`, with tests, documentation, actual screenshots, and the animated walkthrough. Verify files using `SHA256SUMS.txt`.
 
-Use `SHA256SUMS.txt` to check release files. Windows PowerShell: `Get-FileHash .\Zoderise-Focus-1.0.0-Windows-x64.exe -Algorithm SHA256`.
+## Upgrading and limits
 
-## Verified behavior and limits
+Existing 1.0 workspaces are extended automatically. Version 1 ZIP backups can be restored in 1.1; new version 2 backups require 1.1. Keep a backup before replacing your executable and avoid downgrading an upgraded workspace.
 
-Automated tests cover CRUD workflows, checklist recovery, recurring-task idempotency, focus persistence, export safety, and backup restoration. The actual frozen app is checked in a fresh browser on desktop and at a 390px width. The native window is tested across two open/close cycles and checked for server cleanup.
+The live SQLite database, automatic backups, plain ZIP backups, and ordinary exports remain unencrypted. Only optional password-protected `.focus` exports are encrypted; forgotten passwords cannot be recovered. Automatic backups run while the app is open or catch up on reopening. Native shortcuts require a restart after enabling them. Windows can suppress notification banners; the inbox retains reminders.
 
-This is a single-person local workspace. It has no cloud sync, team accounts, drag-and-drop board, OS reminders, or automatic integrations. Timer totals represent recorded timer work, not verified attention or productivity. Local data and exports are unencrypted. Keep backups somewhere you trust.
+This remains a single-person local app without cloud sync, team accounts, or AI integration. Core Dari/Pashto controls are translated; longer help can remain English. Calendar dates are Gregorian. Activity reflects recorded sessions, not measured attention or guaranteed productivity.
+
+Validation details and reproducible checks are in `docs/VERIFICATION.md`.

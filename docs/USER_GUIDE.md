@@ -1,35 +1,38 @@
-# Your first day with Focus
+# Using Zoderise Focus
 
-1. Open the app. Your personal workspace starts empty.
-2. In **Projects & board**, create a project with a name, purpose, and color.
-3. Create a task. Add a deadline, priority, tags, and an estimate if useful. Open its Details again to add checklist items.
-4. Move it through **Inbox → Next → Doing → Done** using the card actions. Details can choose any status.
-5. Save project references in **Notes**. Use Markdown for headings, lists, quotes, and code. Press Save before leaving; Preview displays saved content.
-6. In **Today**, choose a focus goal and write one outcome worth making time for.
-7. In **Focus room**, optionally link a task, enter an intention, and start a session.
-8. Pause before stepping away. Finish & record keeps the actual elapsed time. Cancel excludes the session from activity totals.
-9. Review recorded activity, then download a backup from **Settings & backup**.
+1. Create a project and tasks in **Projects & board**. Add priorities, estimates, deadlines, checklists, and prerequisites.
+2. Drag cards between Inbox, Next, Doing, and Done. Each card also has a status selector and ordering buttons for keyboard use. A blocked task cannot start or finish until its prerequisites are complete.
+3. In **Today**, choose up to three important tasks and a daily focus goal.
+4. Use **Planning & templates** to assign planned dates separately from deadlines. The weekly view shows scheduled work; the effort view compares estimates with linked, completed focus sessions.
+5. Create projects from a built-in template or save a project's active tasks as your own template. Templates reuse task metadata and checklists, not deadlines or dependencies.
+6. Write project-linked Markdown in **Notes**. The editor saves a draft after a short typing pause. Save note publishes it; Preview shows the current draft. Recover drafts after restarting, or restore a previous published version from history. The most recent 50 previous versions are retained. A plain editor is available and saves on field blur.
+7. Start a task-linked or independent session in **Focus room**. Pause when stepping away; Finish & record keeps elapsed time, while Cancel excludes it from activity totals.
+8. Check **Activity & review**, then export or back up your workspace.
 
-## A few useful details
+## Recurrence and timers
 
-**Recurring tasks:** Daily and Weekly recurrence need a due date. Completing a recurring task creates one follow-up due one or seven days after the later of its existing deadline and today. Its checklist is copied unchecked. Reopening and completing the original again does not generate a duplicate. Completing the follow-up continues the series.
+Recurring tasks need a deadline. Daily, weekly, weekdays, selected weekdays, monthly, and intervals of 1–365 days are supported. A successor is based on the later of the existing deadline and completion day. Monthly schedules clamp to the target month's last valid day. Completion creates one successor with fresh unchecked items; repeating completion of the original does not create duplicates. Prerequisites apply to an occurrence and are not copied to its successor.
 
-**Focus persistence:** A running session keeps counting when you leave the page or close the app, capped at its planned duration. On returning to Focus room, a session that reached its target is completed. Pause stops its clock. Break countdowns are only a convenience in the current app session and do not persist across a restart. The timer does not inspect your applications or measure attention.
+Running sessions persist and count wall-clock time up to their planned duration, including while the app is closed. Pausing stops the clock. On reopening, expired sessions are recorded. A break timer is a convenience; scheduled reminders are stored separately. The timer does not inspect applications or measure attention.
 
-**Activity dates:** A completed session counts on the day you finish it. Review shows currently completed, non-trashed tasks; reopening or trashing a task removes it from the completed-work view. A daily reflection is the same text you saved in Today's intention.
+## Capture and reminders
 
-**Search:** Quick find supports literal phrases in titles, task details, note bodies, and tags. Task search matches active projects. Notes from archived projects remain accessible. Ctrl+K opens quick find on supported desktop browsers.
+Ctrl+K searches tasks and notes inside the app. In the Windows executable, enable **Desktop quick-capture shortcut** in Settings, restart, and use Ctrl+Alt+Space while Focus is open. It brings the app to its quick-capture page. A shortcut already used by another app may not register.
 
-**Recovery:** Trash is reversible in Settings. Archiving a project hides its tasks from active views but keeps its notes, history, and data. There is no permanent-delete control in this release.
+Enable reminders for deadlines, completed sessions, and breaks. The app inbox retains them; Windows banners are available only from the native executable while it is open and depend on Windows notification settings. No background service is installed.
 
-**Appearance:** Choose accent, spacing, and gentle transitions in Settings. The app respects your system's reduced-motion preference. Light/dark theme is in the top-right app menu → Settings. That theme choice belongs to the browser view; workspace preferences live in the database.
+## Appearance and languages
 
-**Sample workspace:** The sidebar opens a separate demo database. The sample projects and activity are examples. Leaving the demo returns to your personal workspace. Neither mode overwrites the other.
+Choose an accent, spacing, and reduced motion. Light/dark theme is in the app menu's Settings. English, Dari, and Pashto are available for core controls; Dari/Pashto use right-to-left layouts. Extended help can fall back to English, user text is not translated, and dates remain Gregorian.
+
+The sample workspace is a separate database. Leaving it returns to your personal workspace. Trash is reversible; archiving retains notes and history. Daily review reflects currently completed, non-trashed work and recorded sessions.
 
 ## Backup and restoration
 
-Download a ZIP backup regularly. It contains `focus.json` and `manifest.json` with a SHA-256 check; store it securely because its content is readable. Running timers are paused in exports so time spent transferring a backup does not count as work.
+Plain ZIP backups contain readable `focus.json` and a checksum manifest. Optional password-protected `.focus` exports encrypt the ZIP. Use a password of at least 12 characters; the app does not save it or offer password recovery. The live database and automatic local backups remain unencrypted.
 
-Upload a Focus backup in Settings and inspect its counts. Confirm replacement to restore it. The app validates the schema, durations, options, IDs, references, and checksum before changing data. An automatic copy of the current workspace is saved in the local `backups` directory before replacement. Validation failure leaves your workspace unchanged.
+Enable daily or weekly automatic backups and choose a retention limit of 3–30. They run while the app is open and catch up on reopening; they are not operating-system scheduled jobs. Personal and sample backups stay separate.
 
-JSON is a readable export; use ZIP for restoration. CSV exports all non-trashed tasks, including archived projects, and escapes formula-leading text for spreadsheet safety. Calendar export includes unfinished tasks with deadlines as all-day events. It is a manual snapshot, not two-way synchronization.
+Upload ZIP or `.focus`, enter the password when needed, and inspect added/removed/changed counts before confirming replacement. Validation failures leave your workspace unchanged. A safety ZIP is saved locally before restoration. Running sessions are paused in backup snapshots. Version 1 backups remain readable; version 2 backups need Focus 1.1 or newer.
+
+JSON/CSV/Markdown/calendar downloads are ordinary exports. CSV escapes formula-leading text. Calendar export is a manual snapshot of unfinished deadlines, not two-way sync.

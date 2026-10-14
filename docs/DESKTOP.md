@@ -11,7 +11,7 @@ python -m unittest discover -s tests -v
 python -m PyInstaller --noconfirm FocusDesktop.spec
 ```
 
-Output: `dist/Zoderise-Focus-1.0.0-Windows-x64.exe`.
+Output: `dist/Zoderise-Focus-1.1.0-Windows-x64.exe`.
 
 To test the wrapper before packaging:
 

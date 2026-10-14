@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +11,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 class AppWorkflowTests(unittest.TestCase):
     def setUp(self):
+        # Each AppTest owns a new component manager; re-register module definitions for it.
+        sys.modules.pop('focus.components', None)
         self.tmp = tempfile.TemporaryDirectory()
         self.previous = os.environ.get("FOCUS_DATA_HOME")
         os.environ["FOCUS_DATA_HOME"] = self.tmp.name
@@ -31,7 +34,7 @@ class AppWorkflowTests(unittest.TestCase):
         self.button("Explore sample workspace").click().run()
         self.assertFalse(self.at.exception)
         self.assertGreater(int(self.at.metric[0].value), 0)
-        for page in ("board", "agenda", "notes", "focus", "review", "settings"):
+        for page in ("board", "agenda", "notes", "focus", "review", "planning", "reminders", "capture", "settings"):
             self.at.switch_page(f"app_pages/{page}.py").run()
             self.assertFalse(self.at.exception, str(self.at.exception))
         self.button("Leave demo").click().run()
@@ -47,6 +50,8 @@ class AppWorkflowTests(unittest.TestCase):
         self.at.run()
         self.assertEqual(self.at.metric[0].value, "1")
         self.at.switch_page("app_pages/notes.py").run()
+        self.assertFalse(self.at.exception)
+        next(t for t in self.at.toggle if t.label == "Use plain editor").set_value(True).run()
         next(t for t in self.at.text_input if t.label == "Note title").set_value("An idea")
         next(t for t in self.at.text_area if t.label == "Markdown").set_value("# Keep it useful")
         self.button("Save note").click().run()

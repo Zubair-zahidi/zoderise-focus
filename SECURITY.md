@@ -1,13 +1,13 @@
 # Security and privacy
 
-Zoderise Focus is a personal local workspace. Its SQLite database, JSON/CSV exports, Markdown files, and ZIP backups are unencrypted. It does not promise to prevent information leaks from a compromised device, a copied backup, or a public server configuration.
+Focus is a personal local workspace, bound to 127.0.0.1 with Streamlit CORS and XSRF protections. It has no authentication or multi-user isolation. Do not expose it as a shared LAN or internet service.
 
-The default server binds to 127.0.0.1 with Streamlit CORS and XSRF protections enabled. The application does not implement authentication or multi-user isolation. Keep this configuration local; do not expose it on a LAN or the internet as a shared service.
+The live SQLite database, automatic backups, plain ZIP backups, and JSON/CSV/Markdown exports are unencrypted. Optional `.focus` backup exports use AES-256-GCM with a fresh nonce and salt and a scrypt-derived key. Passwords are not stored. Wrong passwords and altered ciphertext fail authenticated decryption. Encryption protects that exported file; it does not encrypt the live workspace or protect a compromised device.
 
-Application telemetry is disabled. The app has no remote model provider, cloud sync, or automatic upload. Markdown preview does not execute raw HTML and omits Markdown images. External links remain user-controlled. Dependencies may require internet access during installation; the repository README's badges load externally on GitHub, not in the app.
+Application telemetry is disabled. No remote AI, cloud sync, or automatic upload is configured. Markdown preview omits images and raw HTML. Links open on user action. The rich editor keeps a local browser draft recovery copy; use the app only in a browser/device you trust. Restoring a workspace creates a new draft epoch so previous browser recovery copies do not override restored data.
 
-Restore accepts only the documented backup format. Hash checking detects accidental corruption, not authenticity or malicious edits made with a recomputed hash. Schema and value validation protect application integrity, but a valid backup still replaces the workspace when explicitly confirmed. Use backups from a trusted source.
+Restore never executes uploaded SQL or extracts ZIP paths. It bounds file sizes, checks hashes, validates the known schema, values, foreign keys, and dependency cycles, writes a safety snapshot, then replaces data transactionally. Plain ZIP hashes detect corruption, not sender authenticity. Use trusted backups.
 
-CSV cells beginning with spreadsheet-formula markers are escaped. ZIP paths are not extracted. Task and note mutations use SQL parameters. The local data directory inherits operating-system permissions; encryption and device access control remain the user's responsibility.
+SQL mutations are parameterized; CSV formula-leading cells are escaped. Automatic backup retention removes only known backup filenames in the application's own backup directory. Desktop capture and reminders are optional local Windows facilities while the app is open; no system service, application monitoring, or remote control is installed.
 
-For a vulnerability, contact the maintainer through GitHub's private vulnerability reporting when available. Otherwise open an issue asking for a private contact channel without publishing exploit details, tokens, personal notes, or database files. Supported release: 1.0.x.
+Local file permissions and device security remain the user's responsibility. For vulnerabilities, use GitHub private vulnerability reporting when available, or request a private contact without publishing tokens or workspace data. Supported release: 1.1.x.

@@ -1,18 +1,20 @@
-# Release verification · 1.0.0
+# Release verification · 1.1.0
 
-Checked on 14 October 2026.
+Checked on 14 October 2026 using isolated local workspaces.
 
 | Check | Evidence |
 | --- | --- |
-| Local behavior | 12 passing unit/workflow tests; isolated temporary workspaces |
-| Source portability | GitHub Actions matrix: Windows/Linux, Python 3.12/3.14; see the repository's current workflow run |
-| Frozen frontend | Fresh Edge browser connected to the packaged executable's loopback server; page checks, task-linked focus start/pause, and note preview |
-| Quick find | Native Ctrl+K opens search; submitted search returns the expected sample task |
-| Mobile layout | 390px viewport with document width 390px; no horizontal overflow in the board |
-| Native window | Final executable opened and closed twice; zero leftover processes observed in the app process tree |
-| Media | Real app screenshots of the labelled sample workspace; GIF assembled from those screenshots |
-| Data isolation | Empty personal workspace and separate demo workspace checked; backups pause active timer snapshots |
+| Behavior | 22 passing unit/workflow tests: dependencies and cycles, ordering, recurrence, top-three planning, templates, drafts/history, timers, encrypted exports, retention, version 1 import, and validated restore |
+| Source CI | Windows/Linux with Python 3.12/3.14; see the workflow run for the release commit |
+| Packaged frontend | Fresh Edge browser against the executable's loopback server; no page errors |
+| Interactive board | Actual card drag between lanes and status selector verified |
+| Draft recovery | Typed a new note, cleared the test browser's local cache, reloaded, and recovered its database draft |
+| Encrypted restore | Created/downloaded `.focus`, rejected a wrong password, accepted the correct one, and displayed the change preview |
+| Languages | English, Dari, and Pashto core interfaces checked; actual RTL screenshots |
+| Mobile | 390px viewport and 390px document width; banner clear of header |
+| Native window | Two successful open/close cycles; shortcut registered and capture route invoked; no remaining observed child processes |
+| Media | Screenshots from the real labelled sample workspace; GIF assembled from them |
 
-These checks establish the tested flows, not a guarantee that every possible environment or input is covered. The Windows launcher requires WebView2 and is unsigned. The desktop data path is outside the executable and its extraction directory. No actual user database, private notes, or credentials are included in the release.
+Native notification acceptance is checked separately from visible banner delivery, which depends on Windows settings. Test scripts do not change personal workspaces or browser profiles. This verifies the listed flows, not every environment or input. The executable requires WebView2 and is unsigned; live SQLite and automatic backups remain unencrypted.
 
-Run `python -m unittest discover -s tests -v` to repeat behavior checks. `tools/verify_visual.py` and `tools/test_desktop.py` document the packaged-app checks. `docs/media/visual-check.json` records the visual capture result.
+Repeat `python -m unittest discover -s tests -v`. Maintainer tools `verify_visual.py` and `test_desktop.py` cover the packaged app. `docs/media/visual-check.json` records the browser results. User data, runtime logs, and test databases are excluded from source and release files.

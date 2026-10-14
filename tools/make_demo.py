@@ -8,8 +8,9 @@ fontpath = Path("C:/Windows/Fonts/segoeui.ttf")
 font = ImageFont.truetype(str(fontpath), 22) if fontpath.exists() else ImageFont.load_default(size=22)
 small = ImageFont.truetype(str(fontpath), 13) if fontpath.exists() else ImageFont.load_default(size=13)
 entries = [("today.png", "A clear plan for today"), ("board.png", "Projects, checklists & recurring tasks"),
+           ("planning.png", "Make the week workable"), ("templates.png", "Reusable workflows for your next project"),
            ("notes.png", "A place for searchable ideas"), ("focus.png", "One thing. Your full attention."),
-           ("review.png", "Activity based on recorded work"), ("backup.png", "Your workspace. Your control.")]
+           ("review.png", "Activity based on recorded work"), ("restore-preview.png", "Review changes before restoring a backup")]
 frames = []
 for name, title in entries:
     screenshot = Image.open(media / name).convert("RGB")

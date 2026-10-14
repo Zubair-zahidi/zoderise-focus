@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 os.chdir(ROOT)
 env = os.environ.copy()
-env["FOCUS_DATA_HOME"] = str(ROOT / "visual-data")
+env["FOCUS_DATA_HOME"] = os.environ.get('FOCUS_VISUAL_DATA_HOME', str(ROOT / "visual-data" / "upgrade-110"))
 port = env.get("FOCUS_TEST_PORT", "8650")
 env["FOCUS_URL"] = f"http://127.0.0.1:{port}"
 command = ([env["FOCUS_EXE"], "--focus-server", port] if env.get("FOCUS_EXE") else

@@ -3,7 +3,7 @@
 <h1 align="center">Space for your best work.</h1>
 <p align="center">A local productivity workspace for projects, ideas, and focused progress.<br>Created by <a href="https://github.com/Zubair-zahidi">Zubair Zahidi</a>, founder of Zoderise.</p>
 
-<p align="center"><a href="https://github.com/Zubair-zahidi/zoderise-focus/actions/workflows/tests.yml"><img src="https://github.com/Zubair-zahidi/zoderise-focus/actions/workflows/tests.yml/badge.svg" alt="Tests"></a> <img src="https://img.shields.io/badge/version-1.0.0-427365" alt="Version 1.0.0"> <img src="https://img.shields.io/badge/local-SQLite-427365" alt="Local SQLite"> <img src="https://img.shields.io/badge/license-MIT-b1955b" alt="MIT license"></p>
+<p align="center"><a href="https://github.com/Zubair-zahidi/zoderise-focus/actions/workflows/tests.yml"><img src="https://github.com/Zubair-zahidi/zoderise-focus/actions/workflows/tests.yml/badge.svg" alt="Tests"></a> <img src="https://img.shields.io/badge/version-1.1.0-427365" alt="Version 1.1.0"> <img src="https://img.shields.io/badge/local-SQLite-427365" alt="Local SQLite"> <img src="https://img.shields.io/badge/license-MIT-b1955b" alt="MIT license"></p>
 
 <p align="center"><a href="https://github.com/Zubair-zahidi/zoderise-focus/releases">Downloads</a> · <a href="docs/USER_GUIDE.md">User guide</a> · <a href="docs/ARCHITECTURE.md">Architecture</a> · <a href="SECURITY.md">Security</a></p>
 
@@ -19,21 +19,23 @@ The screenshots and animated tour show the app's **separate sample workspace**. 
 
 ## What you can do
 
-| Area | Facilities in version 1.0 |
+| Area | Facilities in version 1.1 |
 | --- | --- |
-| Projects & tasks | Four-column Kanban board; project colors; priorities; due dates; estimates; checklists; tags; searchable task details; project archive |
-| Recurring work | Daily or weekly follow-up tasks created on completion, with fresh unchecked checklist items |
+| Projects & tasks | Drag-and-drop Kanban with keyboard alternatives; manual card order; prerequisites with cycle protection; priorities, deadlines, estimates, checklists, tags, and project archive |
+| Recurring work | Daily, weekly, weekdays, selected weekdays, monthly, and custom intervals; one follow-up per completed occurrence |
 | Agenda | Overdue, today, next seven days, and later views; manual `.ics` calendar export |
-| Notes | Project-linked Markdown notes; title, content, and tag search; saved-content preview; individual `.md` downloads |
+| Notes | Searchable project-linked Markdown; typing autosave; recoverable drafts; last 50 published versions; preview and `.md` downloads |
 | Focus room | Task-linked or independent timer; pause/resume; finish early; optional break countdown; persisted active session |
-| Daily planning | Editable focus goal and written intention/reflection for each day |
+| Daily planning | Today's top three; separate planned dates and deadlines; weekly calendar; editable focus goal and intention |
+| Reusable workflows | Built-in project templates; save your own task/checklist templates; compare estimates with recorded completed sessions |
 | Review | Fourteen-day activity chart; seven-day completed work; recorded session history; downloadable weekly review |
-| Quick access | Quick find and create; native Ctrl+K shortcut; task and note search from any page |
-| Appearance | Forest, Ocean, Violet, or Copper accents; compact spacing; reduced motion; native light/dark themes |
-| Local control | SQLite workspace; JSON/CSV exports; ZIP backups with corruption checks; validated restoration; automatic pre-restore safety copy |
+| Quick access | Ctrl+K search; quick capture page; optional Windows Ctrl+Alt+Space capture shortcut |
+| Appearance | Four accents, compact spacing, reduced motion, light/dark themes; English, Dari, and Pashto core controls with RTL layouts |
+| Reminders | Optional deadline, completed-session, and break reminders; persistent inbox; Windows notifications while the native app is open |
+| Local control | JSON/CSV exports; ZIP and password-encrypted backup exports; restore change preview; pre-restore safety copy; daily/weekly local backups with retention |
 | Recovery | Reversible task/note trash and archived projects; demo data stays separate |
 
-The board uses visible buttons and task details to change status; drag-and-drop is not included. Calendar export is a file, not a live sync. Activity totals represent completed timer sessions, not measured attention, computer monitoring, or a productivity score.
+Calendar export is a file, not a live sync. Activity totals represent completed timer sessions, not measured attention or computer monitoring. Dari/Pashto translate core controls; extended help can fall back to English. User content is preserved and calendar dates are Gregorian.
 
 ## Run from source
 
@@ -52,7 +54,7 @@ On macOS/Linux, activate with `source .venv/bin/activate`. Open **http://127.0.0
 
 ## Windows desktop
 
-Download [Zoderise Focus for Windows x64](https://github.com/Zubair-zahidi/zoderise-focus/releases/download/v1.0.0/Zoderise-Focus-1.0.0-Windows-x64.exe) and double-click it. It bundles Python and the application dependencies, so end users do not need Python, Node.js, npm, or Ollama. The [release page](https://github.com/Zubair-zahidi/zoderise-focus/releases/tag/v1.0.0) also includes the source ZIP and checksums.
+Download [Zoderise Focus for Windows x64](https://github.com/Zubair-zahidi/zoderise-focus/releases/download/v1.1.0/Zoderise-Focus-1.1.0-Windows-x64.exe) and double-click it. It bundles Python and the application dependencies, so end users do not need Python, Node.js, npm, or Ollama. The [release page](https://github.com/Zubair-zahidi/zoderise-focus/releases/tag/v1.1.0) also includes the source ZIP and checksums.
 
 The desktop uses **Microsoft Edge WebView2 Runtime**, commonly present on Windows 10/11. The executable is unsigned; Windows may show an unknown-publisher warning. Check the release checksums and use the original release. Source and desktop versions use the same local data directory. See [desktop build instructions](docs/DESKTOP.md) for prerequisites and packaging.
 
@@ -65,7 +67,9 @@ The desktop uses **Microsoft Edge WebView2 Runtime**, commonly present on Window
 
 The app binds to **127.0.0.1**. It is a personal workspace, not a server for other devices or a hosted multi-user service. No app telemetry, login provider, remote AI, or automatic cloud upload is configured. Notes are rendered without raw HTML; Markdown image syntax is omitted from preview to avoid remote image requests. External links open only when you choose them.
 
-Local databases, backup archives, and exports are **not encrypted**. Use device permissions and disk security appropriate to your information. A SHA-256 backup checksum detects corruption; it does not authenticate the sender. Before restoration, the app validates fields and references using its own schema, saves a safety copy, then replaces the workspace in a transaction.
+The live database, automatic backups, plain ZIP backups, and ordinary exports are **not encrypted**. Optional `.focus` exports protect a backup with your password using AES-GCM and scrypt. The password is not saved and cannot be recovered. A plain ZIP checksum detects corruption, not sender authenticity. Restore validates fields and references, shows changes, saves a safety copy, and replaces the workspace transactionally.
+
+Automatic backups run while the app is open, with a catch-up check on reopening. Windows reminders and the global shortcut are opt-in; shortcut changes require restarting the native app. Windows notification settings can suppress banners; reminders remain in the app inbox. The browser version has no system-wide shortcut or native notification bridge.
 
 ## Development & verification
 
@@ -73,7 +77,7 @@ Local databases, backup archives, and exports are **not encrypted**. Use device 
 python -m unittest discover -s tests -v
 ```
 
-The 12-test suite covers task capture, note saving, preferences, all seven pages, timer start/pause/finish, demo isolation, recurring-task idempotency, checklist editing and task recovery, timer persistence, exports, and backup validation/restoration. CI runs on Windows and Linux with Python 3.12 and 3.14. Visual checks use a fresh browser against an isolated local workspace; capture scripts are in `tools/` and require Node.js, Playwright, and a local Edge installation. These tools are for maintainers, not app users.
+The 22-test suite covers navigation, task/note workflows, dependencies, ordering, recurring schedules, templates, drafts and version recovery, timer persistence, backup encryption, retention, old-format import, and restore validation. CI runs on Windows and Linux with Python 3.12 and 3.14. Fresh-browser checks cover drag-and-drop, database draft recovery, encrypted restore previews, RTL layouts, and mobile width. Maintainer capture scripts require Node.js, Playwright, and Edge; app users do not.
 
 ## Screenshots
 
@@ -85,10 +89,10 @@ The 12-test suite covers task capture, note saving, preferences, all seven pages
 | --- | --- |
 | ![Real Markdown notes](docs/media/notes.png) | ![Real recorded activity](docs/media/review.png) |
 
-[Mobile board](docs/media/mobile-board.png) · [Backup controls](docs/media/backup.png) · [Appearance settings](docs/media/settings.png)
+[Weekly planning](docs/media/planning.png) · [Templates](docs/media/templates.png) · [Restore preview](docs/media/restore-preview.png) · [Dari](docs/media/dari-board.png) · [Pashto](docs/media/pashto-board.png) · [Mobile](docs/media/mobile-board.png)
 
 ## Scope & next steps
 
-Version 1.0 is for an individual using one local workspace. It does not include cloud sync, shared accounts, OS notifications, website blocking, automatic integrations, database encryption, or a mobile installer. The browser layout adapts to small screens, but the default server is only accessible on the host device. Future work can explore keyboard task navigation, richer recurring schedules, and optional encrypted backups without compromising the small, practical first release.
+Version 1.1 is for an individual using one local workspace. Cloud sync, shared accounts, Horizon AI integration, website blocking, database encryption, and a mobile installer remain outside this release. The layout adapts to small screens; the default server is accessible only on the host device. Future integrations need explicit data-flow and permission design.
 
 Contributions are welcome. Please open an issue with a reproducible example and no private workspace data. See [CONTRIBUTING.md](CONTRIBUTING.md). MIT licensed.

@@ -5,6 +5,14 @@
     "scroll": 390
   },
   "quickFindShortcut": true,
+  "dragAndDrop": true,
+  "noteDraftRecovery": true,
+  "encryptedRestorePreview": true,
+  "languages": [
+    "English",
+    "Dari",
+    "Pashto"
+  ],
   "mobileCompactHeaderClear": true,
   "source": "Real app; separate labelled sample workspace"
 }
