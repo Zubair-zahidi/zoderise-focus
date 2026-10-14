@@ -1,0 +1,41 @@
+[server]
+address = "127.0.0.1"
+port = 8650
+headless = true
+maxUploadSize = 20
+enableCORS = true
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+
+[theme]
+base = "light"
+primaryColor = "#427365"
+backgroundColor = "#F7F6F2"
+secondaryBackgroundColor = "#EEEDE6"
+textColor = "#202C2A"
+font = "sans-serif"
+headingFont = "serif"
+baseRadius = "0.75rem"
+buttonRadius = "0.6rem"
+borderColor = "#DCDDD4"
+showWidgetBorder = true
+
+[theme.sidebar]
+backgroundColor = "#EDEFE8"
+secondaryBackgroundColor = "#E3E7DC"
+
+[theme.dark]
+primaryColor = "#7FBEA8"
+backgroundColor = "#151D20"
+secondaryBackgroundColor = "#202D30"
+textColor = "#E7ECE8"
+borderColor = "#354247"
+
+[theme.dark.sidebar]
+backgroundColor = "#1B2528"
+secondaryBackgroundColor = "#243336"

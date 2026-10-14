@@ -1,0 +1,22 @@
+/* Native Streamlit widgets retain their labels, keyboard behavior, and themes. */
+.stMainBlockContainer {max-width:1440px;padding:2.4rem 3rem 4rem;}
+h1 {font-family:Georgia,'Times New Roman',serif!important;letter-spacing:-.035em;font-weight:500!important;line-height:1.15!important;}
+h2,h3 {letter-spacing:-.02em;}
+[data-testid="stSidebar"] {border-right:1px solid var(--border-color);}
+[data-testid="stSidebarNav"] a {border-radius:.55rem;}
+.brand {display:flex;align-items:center;gap:12px;padding:16px 0 12px;font-size:19px;letter-spacing:.17em;font-weight:750;}
+.brand span:not(.brand-mark) {display:block;font-size:8px;letter-spacing:.17em;font-weight:500;margin-top:4px;}
+.brand-mark {display:grid;place-items:center;width:38px;height:42px;background:#203c35;color:#e4c993;border-radius:11px;font-family:Georgia,serif;font-size:27px;letter-spacing:0;box-shadow:0 6px 14px #18382e18;}
+.st-key-hero {padding:1.4rem!important;background:linear-gradient(120deg,#42736510,transparent)!important;}
+[data-testid="stMetric"] {padding:1rem 1.15rem!important;}
+[data-testid="stMetricValue"] {font-family:Georgia,serif;}
+[data-testid="stBaseButton-primary"] {background-color:var(--focus-accent)!important;border-color:var(--focus-accent)!important;color:white!important;}
+[data-testid="stBaseButton-secondary"] {transition:transform .16s ease,box-shadow .16s ease;}
+[data-testid="stBaseButton-secondary"]:hover {transform:translateY(-1px);box-shadow:0 3px 12px #202c2a14;}
+[data-testid="stProgress"] [role="progressbar"] {accent-color:var(--focus-accent);}
+.st-key-timer_room {padding:2.5rem!important;text-align:center;background:radial-gradient(ellipse at center,#42736514,transparent 70%);}
+.timer-number {font-family:Georgia,serif;font-variant-numeric:tabular-nums;font-size:clamp(72px,10vw,132px);line-height:1.2;letter-spacing:-.06em;margin:1.3rem 0;color:var(--focus-accent);}
+.timer-number span {opacity:.4;padding:0 .03em;}
+[data-testid="stCaptionContainer"] {letter-spacing:.015em;}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
+@media(max-width:740px){.stMainBlockContainer{padding:1.25rem 1rem 2.5rem;}.st-key-hero{padding:.8rem!important;}h1{font-size:2.1rem!important;}.st-key-timer_room{padding:1.2rem!important;}}
