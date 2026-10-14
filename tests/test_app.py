@@ -71,6 +71,25 @@ class AppWorkflowTests(unittest.TestCase):
         from focus.store import Store
         self.assertEqual(Store().settings()["accent"], "Violet")
 
+    def test_task_details_checklist_and_recovery(self):
+        from focus.store import Store
+        db = Store()
+        task = db.save_task("Ship an accessible app", status="Doing")
+        self.at.run()
+        self.button("Details").click().run()
+        self.assertFalse(self.at.exception)
+        next(t for t in self.at.text_input if t.label == "Add a checklist item").set_value("Check tab order")
+        self.button("Add item").click().run()
+        self.assertFalse(self.at.exception)
+        next(c for c in self.at.checkbox if c.label == "Check tab order").check().run()
+        self.assertFalse(self.at.exception)
+        self.assertEqual(db.checklist(task)[0]["done"], 1)
+        self.button("Move task to trash").click().run()
+        self.at.switch_page("app_pages/settings.py").run()
+        self.button("Restore").click().run()
+        self.assertFalse(self.at.exception)
+        self.assertIsNone(db.get("tasks", task)["deleted_at"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -49,7 +49,7 @@ with right:
         if note:
             st.subheader(note["title"])
             # Raw HTML is not executed; remote images are not fetched into the preview.
-            preview = __import__("re").sub(r"!\[([^\]]*)\]\([^)]*\)", r"[Image: \1 — open separately]", note["body"])
+            preview = __import__("re").sub(r"!\[([^\]]*)\](?:\([^)]*\))?", r"[Image: \1 — omitted]", note["body"])
             st.markdown(preview)
         else:
             st.info("Save your note to see its Markdown preview.")

@@ -13,11 +13,27 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
   page.on('pageerror', error => errors.push(String(error)));
   await page.goto(url);
   await page.waitForTimeout(2500);
-  console.log('Initial page: '+(await page.locator('body').innerText()).slice(0,3000));
   await page.screenshot({path:path.join(out,'initial-check.png'),fullPage:true});
   await page.getByRole('button',{name:/Explore sample workspace/}).click();
   await page.getByRole('heading',{name:'Make room for what matters, Zubair.'}).waitFor();
   await page.waitForTimeout(900);
+  if(process.env.FOCUS_MOBILE_ONLY) {
+    await page.getByRole('link',{name:'Projects & board',exact:false}).click();
+    await page.getByRole('heading',{name:'From idea to done.'}).waitFor();
+    await page.setViewportSize({width:390,height:844});
+    await page.waitForTimeout(500);
+    await page.locator('[data-testid="stMain"]').evaluate(el=>el.scrollTop=0);
+    await page.screenshot({path:path.join(out,'mobile-board.png'),fullPage:true});
+    await browser.close();
+    console.log('Refreshed clean mobile screenshot');
+    return;
+  }
+  await page.keyboard.press('Control+k');
+  await page.getByRole('textbox',{name:'Search tasks and notes',exact:true}).fill('networking');
+  await page.getByRole('textbox',{name:'Search tasks and notes',exact:true}).press('Enter');
+  await page.getByRole('button',{name:/Study networking fundamentals/}).waitFor();
+  await page.keyboard.press('Escape');
+  await page.getByRole('textbox',{name:'Search tasks and notes',exact:true}).waitFor({state:'hidden'});
   await page.screenshot({path:path.join(out,'today.png'),fullPage:true});
   async function visit(label, heading, filename) {
     await page.getByRole('link',{name:label,exact:false}).click();
@@ -51,6 +67,13 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
   await page.getByRole('tab',{name:'Export & backup',exact:true}).click();
   await page.waitForTimeout(200);
   await page.screenshot({path:path.join(out,'backup.png'),fullPage:true});
+  await page.getByRole('tab',{name:'Appearance & routine',exact:true}).click();
+  const compact = page.getByRole('switch',{name:'Compact spacing',exact:true});
+  if(!await compact.isChecked()) {
+    await compact.focus();
+    await compact.press('Space');
+  }
+  await page.getByRole('button',{name:/Save preferences/}).click();
   // Check mobile overflow on the same authenticated-free local demo session.
   await page.getByRole('link',{name:'Projects & board',exact:false}).click();
   await page.getByRole('heading',{name:'From idea to done.'}).waitFor();
@@ -58,8 +81,11 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
   await page.waitForTimeout(500);
   await page.locator('[data-testid="stMain"]').evaluate(el=>el.scrollTop=0);
   const overflow = await page.evaluate(() => ({width:innerWidth,scroll:document.documentElement.scrollWidth}));
+  const banner = await page.locator('[data-testid="stAlert"]').first().boundingBox();
+  const header = await page.locator('[data-testid="stHeader"]').boundingBox();
+  if(banner && header && banner.y < header.y+header.height) throw new Error('Mobile banner overlaps the header');
   await page.screenshot({path:path.join(out,'mobile-board.png'),fullPage:true});
-  fs.writeFileSync(path.join(out,'visual-check.json'),JSON.stringify({errors,overflow,source:'Real app; separate labelled sample workspace'},null,2));
+  fs.writeFileSync(path.join(out,'visual-check.json'),JSON.stringify({errors,overflow,quickFindShortcut:true,mobileCompactHeaderClear:true,source:'Real app; separate labelled sample workspace'},null,2));
   console.log(JSON.stringify({errors,overflow,screenshots:fs.readdirSync(out).filter(n=>n.endsWith('.png'))}));
   await browser.close();
 })().catch(error=>{console.error(error);process.exit(1);});

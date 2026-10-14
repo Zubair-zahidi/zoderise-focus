@@ -11,7 +11,8 @@ st.logo(str(Path(__file__).parent / "assets" / "wordmark.svg"), size="large",
         icon_image=str(Path(__file__).parent / "assets" / "icon.png"))
 with st.sidebar:
     st.caption("Space for your best work.")
-    st.button("Quick find & create", icon=":material/search:", width="stretch", on_click=quick_find, shortcut="Ctrl+K")
+    st.button("Quick find & create", icon=":material/search:", width="stretch", on_click=quick_find, shortcut="Ctrl+K",
+              disabled=bool(st.session_state.get("open_task") or st.session_state.get("open_project")))
     st.divider()
 
 page = st.navigation({"WORKSPACE": [

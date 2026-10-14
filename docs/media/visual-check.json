@@ -4,5 +4,7 @@
     "width": 390,
     "scroll": 390
   },
+  "quickFindShortcut": true,
+  "mobileCompactHeaderClear": true,
   "source": "Real app; separate labelled sample workspace"
 }

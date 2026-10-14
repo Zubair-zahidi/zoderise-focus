@@ -54,6 +54,7 @@ for round_number in (1, 2):
         else:
             raise RuntimeError("No Zoderise Focus native window appeared")
         time.sleep(4)
+        observed.update(p.pid for p in psutil.Process(process.pid).children(recursive=True))
         user32.PostMessageW(ctypes.c_void_p(windows[0]), 0x0010, 0, 0)  # Close only our app's window.
         process.wait(timeout=20)
         time.sleep(3)

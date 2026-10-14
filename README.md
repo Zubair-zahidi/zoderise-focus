@@ -52,7 +52,7 @@ On macOS/Linux, activate with `source .venv/bin/activate`. Open **http://127.0.0
 
 ## Windows desktop
 
-The intended portable release is `Zoderise-Focus-1.0.0-Windows-x64.exe`. When it is available under [Releases](https://github.com/Zubair-zahidi/zoderise-focus/releases), download and double-click it. It bundles Python and the application dependencies, so end users do not need Python, Node.js, npm, or Ollama.
+Download [Zoderise Focus for Windows x64](https://github.com/Zubair-zahidi/zoderise-focus/releases/download/v1.0.0/Zoderise-Focus-1.0.0-Windows-x64.exe) and double-click it. It bundles Python and the application dependencies, so end users do not need Python, Node.js, npm, or Ollama. The [release page](https://github.com/Zubair-zahidi/zoderise-focus/releases/tag/v1.0.0) also includes the source ZIP and checksums.
 
 The desktop uses **Microsoft Edge WebView2 Runtime**, commonly present on Windows 10/11. The executable is unsigned; Windows may show an unknown-publisher warning. Check the release checksums and use the original release. Source and desktop versions use the same local data directory. See [desktop build instructions](docs/DESKTOP.md) for prerequisites and packaging.
 
@@ -73,7 +73,7 @@ Local databases, backup archives, and exports are **not encrypted**. Use device 
 python -m unittest discover -s tests -v
 ```
 
-The suite covers task capture, note saving, preferences, all seven pages, timer start/pause/finish, demo isolation, recurring-task idempotency, task recovery, timer persistence, exports, and backup validation/restoration. Visual checks use a fresh browser against an isolated local workspace; capture scripts are in `tools/` and require Node.js, Playwright, and a local Edge installation. These tools are for maintainers, not app users.
+The 12-test suite covers task capture, note saving, preferences, all seven pages, timer start/pause/finish, demo isolation, recurring-task idempotency, checklist editing and task recovery, timer persistence, exports, and backup validation/restoration. CI runs on Windows and Linux with Python 3.12 and 3.14. Visual checks use a fresh browser against an isolated local workspace; capture scripts are in `tools/` and require Node.js, Playwright, and a local Edge installation. These tools are for maintainers, not app users.
 
 ## Screenshots
 

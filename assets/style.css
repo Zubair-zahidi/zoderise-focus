@@ -8,6 +8,8 @@ h2,h3 {letter-spacing:-.02em;}
 .brand span:not(.brand-mark) {display:block;font-size:8px;letter-spacing:.17em;font-weight:500;margin-top:4px;}
 .brand-mark {display:grid;place-items:center;width:38px;height:42px;background:#203c35;color:#e4c993;border-radius:11px;font-family:Georgia,serif;font-size:27px;letter-spacing:0;box-shadow:0 6px 14px #18382e18;}
 .st-key-hero {padding:1.4rem!important;background:linear-gradient(120deg,#42736510,transparent)!important;}
+.project-chip {display:flex;align-items:center;gap:7px;font-size:.75rem;letter-spacing:.04em;opacity:.8;margin-bottom:4px;}
+.project-chip span {width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 [data-testid="stMetric"] {padding:1rem 1.15rem!important;}
 [data-testid="stMetricValue"] {font-family:Georgia,serif;}
 [data-testid="stBaseButton-primary"] {background-color:var(--focus-accent)!important;border-color:var(--focus-accent)!important;color:white!important;}
@@ -19,4 +21,4 @@ h2,h3 {letter-spacing:-.02em;}
 .timer-number span {opacity:.4;padding:0 .03em;}
 [data-testid="stCaptionContainer"] {letter-spacing:.015em;}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
-@media(max-width:740px){.stMainBlockContainer{padding:1.25rem 1rem 2.5rem;}.st-key-hero{padding:.8rem!important;}h1{font-size:2.1rem!important;}.st-key-timer_room{padding:1.2rem!important;}}
+@media(max-width:740px){.stMainBlockContainer{padding:4.8rem 1rem 2.5rem!important;}.st-key-hero{padding:.8rem!important;}h1{font-size:2.1rem!important;}.st-key-timer_room{padding:1.2rem!important;}}

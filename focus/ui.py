@@ -155,7 +155,8 @@ def task_card(task, actions=True, key_prefix=""):
     db = store()
     with st.container(border=True, key=key_prefix + "card_" + task["id"]):
         project = task.get("project_name") or "INBOX"
-        st.caption(project.upper())
+        color = task.get("project_color") or "#879b8e"
+        st.html(f'<div class="project-chip"><span style="background:{color}"></span>{html.escape(project.upper())}</div>')
         st.markdown(f"**{html.escape(task['title'])}**")
         bits = [task["priority"] + " priority", f"{task['estimate_minutes']} min"]
         if task["due_date"]:
