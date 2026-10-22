@@ -9,7 +9,7 @@
 
 ![Today, captured from the running app](docs/media/today.png)
 
-Focus brings the practical parts of getting work done into one quiet place. Capture a task, move it through your board, keep its references in Markdown notes, and give it a focused session. The workspace works without an account, cloud service, or AI model.
+Focus brings projects, notes, planning, and focused work into one local workspace. Capture a task, move it through your board, keep its references in Markdown notes, and give it a focused session. The workspace works without an account, cloud service, or AI model.
 
 ## See it in action
 
@@ -96,3 +96,15 @@ The 22-test suite covers navigation, task/note workflows, dependencies, ordering
 Version 1.1 is for an individual using one local workspace. Cloud sync, shared accounts, Horizon AI integration, website blocking, database encryption, and a mobile installer remain outside this release. The layout adapts to small screens; the default server is accessible only on the host device. Future integrations need explicit data-flow and permission design.
 
 Contributions are welcome. Please open an issue with a reproducible example and no private workspace data. See [CONTRIBUTING.md](CONTRIBUTING.md). MIT licensed.
+
+## Restricted cloud workspaces
+
+When the home directory is read-only, set `FOCUS_DATA_HOME` to a writable private directory before launching Streamlit. For example, on Linux: `FOCUS_DATA_HOME=/workspace/focus-data .venv/bin/python -m streamlit run app.py`. The existing data-directory override keeps the application code independent of the cloud filesystem layout.
+
+## Cloud review preview
+
+![Cloud capture of zoderise-focus](docs/cloud-review/desktop-2026-10-22.png)
+
+Captured from the running project on 22 October 2026. The built-in sample workspace is enabled; the sample data is labelled in the interface.
+
+[Mobile capture](docs/cloud-review/mobile-2026-10-22.png)

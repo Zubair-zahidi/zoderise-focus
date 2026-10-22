@@ -14,6 +14,12 @@ from focus.crypto import encrypt_backup, decrypt_backup
 
 
 class UpgradeTests(unittest.TestCase):
+    def test_encrypted_backup_rejects_non_object_envelopes(self):
+        from focus.crypto import MAGIC
+        for value in (None, [], 'invalid', 42):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                decrypt_backup(MAGIC + json.dumps(value).encode(), 'A long test passphrase')
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.now = 1791887400.0

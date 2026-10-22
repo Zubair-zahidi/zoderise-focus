@@ -31,7 +31,7 @@ def decrypt_backup(blob, password):
         raise ValueError("Unsupported encrypted backup or size.")
     try:
         values = json.loads(blob[len(MAGIC):])
-        if set(values) != {"salt", "nonce", "ciphertext"}:
+        if not isinstance(values, dict) or set(values) != {"salt", "nonce", "ciphertext"}:
             raise ValueError("Invalid encrypted backup fields.")
         salt, nonce, cipher = (base64.b64decode(values[k], validate=True) for k in ("salt", "nonce", "ciphertext"))
         if len(salt) != 32 or len(nonce) != 12 or len(cipher) > 20_000_016:
